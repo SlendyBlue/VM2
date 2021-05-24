@@ -1,0 +1,57 @@
+---
+- hosts: dbservers
+  gather_facts: false
+  become: true
+  roles:
+    - '/mnt/sdb/playbooks/roles'
+  tasks:
+    - name: Install MySQL
+      yum: 
+        name: mysql-server
+        state: present
+        update_cache: yes
+
+    - name: Install python
+      yum:
+        name: python-mysqldb
+        state: latest
+
+    - name: Install lib
+      yum:
+        name: libmysqlclient-dev
+        state: present        
+
+    - name: create test database
+      mysql_db:
+        name: test
+        state: present
+
+    - name: ceate user
+      community.mysql.mysql_query:
+        login_db: test
+        query: 
+        - CREATE USER IF NOT EXISTS 'myuser3'@'%' IDENTIFIED BY 'mypass3'
+        - GRANT ALL ON *.* TO 'myuser3'@'%'      
+
+    - name: add sample database
+      template:
+        src: /mnt/sdb/database/dump.sql
+        dest: /tmp/dump.sql
+
+    - name: insert sample database
+      mysql_db:
+        name: test
+        state: import
+        target: /tmp/dump.sql
+        login_user: myuser3
+        login_password: mypass3
+
+    - name: move mysql.cnf file
+      template:
+        src: /mnt/sdb/klanten/test/mysqld.cnf
+        dest: /etc/mysql/mysql.conf.d/mysqld.cnf
+
+    - name: restart mysql
+      service:
+        name: mysql
+        state: restarted

@@ -1,0 +1,27 @@
+---
+- hosts: loadbalancer
+  gather_facts: false
+  become: true
+  roles:
+    - '/mnt/sdb/playbooks/roles'
+  tasks:
+    - name: move hosts
+      template:
+        src: /mnt/sdb/klanten/test/hosts
+        dest: /etc/hosts
+
+    - name: install loadbalancer
+      apt:
+        name: haproxy
+        state: present
+        update_cache: yes
+
+    - name: move settings haproxy
+      template:
+        src: /mnt/sdb/playbooks/haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
+        
+    - name: restart haproxy
+      service:
+        name: haproxy
+        state: restarted

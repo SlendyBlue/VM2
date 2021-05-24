@@ -1,0 +1,76 @@
+---
+- hosts: webservers
+  gather_facts: false
+  become: true
+  roles:
+    - '/mnt/sdb/playbooks/roles'
+  tasks: 
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+    
+    - name: Installation install software-properties-common
+      apt: name=software-properties-common
+
+    - name: "Repo PHP 7.4"
+      apt_repository:
+        repo="ppa:ondrej/php"
+   
+    - name: "Updating the repo"
+      apt: update_cache=yes
+
+    - name: Installation PHP 7.4
+      apt: name=php7.4 state=present
+
+    - name: install lamp stack
+      apt:
+        pkg:
+          - php7.4-mysql
+          - php7.4-curl
+          - php7.4-json
+          - php7.4-cgi
+          - php7.4-xsl
+          - php7.4-cgi
+          - php7.4-gd
+          - php7.4-mbstring
+          - php7.4-zip
+          - php7.4-xmlrpc
+          - php7.4-soap
+          - php7.4-intl
+          - libapache2-mod-php
+        state: present
+        update_cache: yes
+
+- hosts: webserver1
+  gather_facts: false
+  become: true
+  tasks:
+    - name: move index file
+      template:
+        src: /mnt/sdb/klanten/test/index1/index.php
+        dest: /var/www/html/index.php
+
+- hosts: webserver2
+  gather_facts: false
+  become: true
+  tasks:
+    - name: move index file
+      template:
+        src: /mnt/sdb/klanten/test/index2/index.php
+        dest: /var/www/html/index.php
+
+- hosts: webservers
+  gather_facts: false
+  become: true
+  tasks:
+    - name: restart apache2
+      service:
+        name: apache2
+        state: restarted
+
+    - name: remove index.html
+      file:
+        state: absent
+        path: /var/www/html/index.html
