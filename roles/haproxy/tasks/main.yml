@@ -1,2 +1,23 @@
 ---
-# tasks file for haproxy
+#s1126361
+#Ronan Spaan
+    - name: move hosts
+      template:
+        src: /mnt/sdb/conf/hosts
+        dest: /etc/hosts
+
+    - name: install loadbalancer
+      apt:
+        name: haproxy
+        state: present
+        update_cache: yes
+
+    - name: move settings haproxy
+      template:
+        src: /mnt/sdb/conf/haproxy.cfg
+        dest: /etc/haproxy/haproxy.cfg
+        
+    - name: restart haproxy
+      service:
+        name: haproxy
+        state: restarted
